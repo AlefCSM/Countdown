@@ -1,6 +1,6 @@
 package com.example.countdown.screens
 
-import com.example.countdown.repositories.FakeCountdownRepository
+//import com.example.countdown.repositories.FakeCountdownRepository
 import org.junit.Assert.*
 
 import org.junit.Before
@@ -11,6 +11,6 @@ class CountdownViewModelTest {
 
     @Before
     fun setUp() {
-        viewModel = CountdownViewModel(repository = FakeCountdownRepository() )
+//        viewModel = CountdownViewModel(repository = FakeCountdownRepository() )
     }
 }
