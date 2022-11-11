@@ -1,18 +1,12 @@
 package com.example.countdown.components
 
-import android.content.Context
-import android.system.Os.accept
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import android.os.CountDownTimer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.SnackbarDefaults.backgroundColor
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
@@ -25,27 +19,77 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.example.countdown.R
 import com.example.countdown.model.Countdown
+import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.math.roundToInt
 
 @Composable
 fun CountdownCard(countdown: Countdown) {
 
+
+    val seconds: MutableState<Long> = remember {
+        mutableStateOf(0)
+    }
+    val minutes: MutableState<Long> = remember {
+        mutableStateOf(0)
+    }
+    var days: MutableState<Long> = remember {
+        mutableStateOf(0)
+    }
+    val hours: MutableState<Long> = remember {
+        mutableStateOf(0)
+    }
+    val months: MutableState<Long> = remember {
+        mutableStateOf(0)
+    }
+    val years: MutableState<Long> = remember {
+        mutableStateOf(0)
+    }
+
+
+    val currentTime = Calendar.getInstance().time
+    val format = SimpleDateFormat("dd/MM/yyyy hh:mm",Locale.getDefault())
+    val limitDate = format.parse(countdown.limitDate)
+
+    val difference = limitDate.time - currentTime.time
+
+    val secondsTimer = object : CountDownTimer(difference, 1000) {
+        override fun onTick(millisUntilFinished: Long) {
+            var diff = millisUntilFinished
+            val secondsInMilli: Long = 1000
+            val minutesInMilli = secondsInMilli * 60
+            val hoursInMilli = minutesInMilli * 60
+            val daysInMilli = hoursInMilli * 24
+
+            days.value = diff/daysInMilli
+            diff %= daysInMilli
+
+            hours.value = diff/hoursInMilli
+            diff %= hoursInMilli
+
+            minutes.value = diff/minutesInMilli
+            diff %= minutesInMilli
+
+            seconds.value = diff/secondsInMilli
+        }
+
+        override fun onFinish() {
+
+        }
+
+    }
+
+    secondsTimer.start()
     @Composable
     fun YearCounter() {
         Surface(modifier = Modifier.padding(horizontal = 4.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "0")
+                Text(text = "${years.value}")
                 Text(text = "Years")
             }
         }
@@ -56,7 +100,7 @@ fun CountdownCard(countdown: Countdown) {
     fun MonthCounter() {
         Surface(modifier = Modifier.padding(horizontal = 4.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "0")
+                Text(text = "${months.value}")
                 Text(text = "Months")
             }
         }
@@ -66,7 +110,7 @@ fun CountdownCard(countdown: Countdown) {
     fun DayCounter() {
         Surface(modifier = Modifier.padding(horizontal = 4.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "0")
+                Text(text = "${days.value}")
                 Text(text = "Days")
             }
         }
@@ -76,7 +120,7 @@ fun CountdownCard(countdown: Countdown) {
     fun HourCounter() {
         Surface(modifier = Modifier.padding(horizontal = 4.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "0")
+                Text(text = "${hours.value}")
                 Text(text = "Hours")
             }
         }
@@ -86,7 +130,7 @@ fun CountdownCard(countdown: Countdown) {
     fun MinuteCounter() {
         Surface(modifier = Modifier.padding(horizontal = 4.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "0")
+                Text(text = "${minutes.value}")
                 Text(text = "Minutes")
             }
         }
@@ -96,7 +140,7 @@ fun CountdownCard(countdown: Countdown) {
     fun SecondCounter() {
         Surface(modifier = Modifier.padding(horizontal = 4.dp)) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "0")
+                Text(text = "${seconds.value}")
                 Text(text = "Seconds")
             }
         }
@@ -146,29 +190,14 @@ fun CustomTextField(
 @Composable
 fun SwipeToReveal(
     composable: @Composable () -> Unit,
-//    countdown: Countdown = Countdown(title = "teste", description = "", limitDate = ""),
     onClick: () -> Unit
 ) {
-
-    var backgroundColor by remember { mutableStateOf(Color.Cyan) }
-    val color = animateColorAsState(
-        targetValue = backgroundColor,
-        animationSpec = tween(3000)
-    )
 
     val localDensity = LocalDensity.current
     val boxSize = 60.dp
     val swipeableState = rememberSwipeableState(initialValue = 0)
     val pxSize = with(localDensity) { boxSize.toPx() }
     val anchors = mapOf(0f to 0, -pxSize to 1)
-
-
-    val icon = Icons.Default.Delete
-
-    val scale by animateFloatAsState(
-        if (swipeableState.offset.value.roundToInt() == 0) 0.75f else 1.2f
-    )
-
 
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -182,9 +211,7 @@ fun SwipeToReveal(
         }
         Column(
             modifier = Modifier
-                .fillMaxSize()
-//                .background(Color.Gray)
-            ,
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -193,7 +220,6 @@ fun SwipeToReveal(
                     .fillMaxWidth()
                     .height(IntrinsicSize.Min)
                     .background(Color(0xFFFB0A00).copy(alpha = 0.2f))
-//                    .clip(RoundedCornerShape(20.dp))
                     .swipeable(
                         state = swipeableState,
                         anchors = anchors,
@@ -226,9 +252,6 @@ fun SwipeToReveal(
                     modifier = Modifier
                         .fillMaxSize()
                         .offset {
-                            println("offset:" + swipeableState.offset.value.roundToInt())
-                            println("targetValue:" + swipeableState.targetValue)
-                            println("currentValue:" + swipeableState.currentValue)
                             IntOffset(swipeableState.offset.value.roundToInt(), 0)
                         }
 //                        .fillMaxHeight()
@@ -242,8 +265,7 @@ fun SwipeToReveal(
                         verticalArrangement = Arrangement.Center,
                     ) {
                         Row() {
-                                                    composable()
-//                            CountdownCard(countdown = countdown)
+                            composable()
                         }
                     }
                 }
